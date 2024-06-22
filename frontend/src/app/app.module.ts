@@ -13,6 +13,8 @@ import {MatIcon} from "@angular/material/icon";
 import {MatMenu, MatMenuItem, MatMenuTrigger} from "@angular/material/menu";
 import {MatDrawer,MatDrawerContent, MatDrawerContainer} from "@angular/material/sidenav";
 import {MatNavList} from "@angular/material/list";
+import {MatCard, MatCardContent, MatCardHeader,MatCardTitle} from "@angular/material/card";
+import {MatDivider} from "@angular/material/divider";
 
 @NgModule({
   declarations: [
@@ -34,7 +36,12 @@ import {MatNavList} from "@angular/material/list";
     MatMenuItem,
     MatDrawer,
     MatDrawerContent,
-    MatMenuTrigger
+    MatMenuTrigger,
+    MatCard,
+    MatCardHeader,
+    MatDivider,
+    MatCardContent,
+    MatCardTitle
 
   ],
   providers: [

@@ -1,4 +1,4 @@
-<div id="mapViewDiv" style="height: 500px;"></div>
+<div class="container">
 <mat-form-field>
   <mat-label>Select Basemap</mat-label>
   <mat-select [(value)]="selectedBasemap" (selectionChange)="onBasemapChange()">
@@ -7,3 +7,12 @@
     </mat-option>
   </mat-select>
 </mat-form-field>
+
+  <mat-card>
+    <mat-divider></mat-divider>
+    <mat-card-content>
+      <div id="mapViewDiv" style="height: 500px;"></div>
+    </mat-card-content>
+  </mat-card>
+</div>
+
