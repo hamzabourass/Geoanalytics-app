@@ -2,7 +2,7 @@ package ma.geomatic.backend.web;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import ma.geomatic.backend.dtos.PointDTO;
+import ma.geomatic.backend.dtos.PolygonDTO;
 import ma.geomatic.backend.entities.TransportStation;
 import ma.geomatic.backend.service.TransportStationService;
 import org.springframework.web.bind.annotation.*;
@@ -33,7 +33,6 @@ public class TransportStationController {
         return transportStationService.findNearbyStationsUsingCustom(longitude,latitude, distance);
     }
 
-
     @GetMapping("/search")
     public List<TransportStation> search(@RequestParam String searchKey) {
         return transportStationService.searchByNameOrFclass(searchKey);
@@ -47,5 +46,10 @@ public class TransportStationController {
     @GetMapping("/byCode/{code}")
     public List<TransportStation> getStationByCode(@PathVariable Double code) {
         return transportStationService.findByCode(code);
+    }
+
+    @PostMapping("/withinPolygon")
+    public List<TransportStation> getStationsWithinPolygon(@RequestBody PolygonDTO polygonDTO) {
+        return transportStationService.findStationsWithinPolygon(polygonDTO);
     }
 }

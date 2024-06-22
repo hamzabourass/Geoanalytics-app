@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import config from '@arcgis/core/config.js';
 
 @Component({
   selector: 'app-root',

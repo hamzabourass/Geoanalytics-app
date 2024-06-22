@@ -1,0 +1,9 @@
+<div id="mapViewDiv" style="height: 500px;"></div>
+<mat-form-field>
+  <mat-label>Select Basemap</mat-label>
+  <mat-select [(value)]="selectedBasemap" (selectionChange)="onBasemapChange()">
+    <mat-option *ngFor="let basemap of basemaps" [value]="basemap.value">
+      {{ basemap.name }}
+    </mat-option>
+  </mat-select>
+</mat-form-field>

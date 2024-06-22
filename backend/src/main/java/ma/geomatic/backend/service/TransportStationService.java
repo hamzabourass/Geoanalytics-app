@@ -2,11 +2,14 @@ package ma.geomatic.backend.service;
 
 import jakarta.transaction.Transactional;
 import ma.geomatic.backend.dtos.PointDTO;
+import ma.geomatic.backend.dtos.PolygonDTO;
 import ma.geomatic.backend.entities.TransportStation;
 import ma.geomatic.backend.repository.TransportStationRepository;
 import ma.geomatic.backend.repository.TransportStationRepositoryCustom;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Map;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,6 +40,7 @@ public class TransportStationService {
         return transportStationRepositoryCustom.findNearbyStations(latitude, longitude, distance);
     }
 
+
     public List<TransportStation> findByFclass(String fclass) {
         log.info("Fetching transport stations with name containing: {}", fclass);
         validateName(fclass);
@@ -53,6 +57,22 @@ public class TransportStationService {
         log.info("Fetching transport stations with code: {}", code);
         validateCode(code);
         return transportStationRepository.findByCode(code);
+    }
+
+
+    public List<TransportStation> findStationsWithinPolygon(PolygonDTO polygonDTO) {
+        String polygonWKT = convertPolygonDTOToWKT(polygonDTO);
+        return transportStationRepositoryCustom.findStationsWithinPolygon(polygonWKT);
+    }
+
+    private String convertPolygonDTOToWKT(PolygonDTO polygonDTO) {
+        StringBuilder wktBuilder = new StringBuilder("POLYGON((");
+        for (PointDTO point : polygonDTO.getCoordinates()) {
+            wktBuilder.append(point.getLongitude()).append(" ").append(point.getLatitude()).append(",");
+        }
+        wktBuilder.setLength(wktBuilder.length() - 1); // Remove last comma
+        wktBuilder.append("))");
+        return wktBuilder.toString();
     }
 
     private void validatePoint(Double longitude, Double latitude) {
