@@ -15,6 +15,8 @@ import {MatDrawer,MatDrawerContent, MatDrawerContainer} from "@angular/material/
 import {MatNavList} from "@angular/material/list";
 import {MatCard, MatCardContent, MatCardHeader,MatCardTitle} from "@angular/material/card";
 import {MatDivider} from "@angular/material/divider";
+import {MatProgressSpinner} from "@angular/material/progress-spinner";
+import {MapService} from "./services/map.service";
 
 @NgModule({
   declarations: [
@@ -41,11 +43,13 @@ import {MatDivider} from "@angular/material/divider";
     MatCardHeader,
     MatDivider,
     MatCardContent,
-    MatCardTitle
+    MatCardTitle,
+    MatProgressSpinner
 
   ],
   providers: [
-    provideAnimationsAsync()
+    provideAnimationsAsync(),
+    MapService
   ],
   bootstrap: [AppComponent]
 })

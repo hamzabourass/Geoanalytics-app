@@ -8,11 +8,26 @@
   </mat-select>
 </mat-form-field>
 
-  <mat-card>
+  <mat-form-field>
+    <mat-label>Select GeoJSON</mat-label>
+    <mat-select (selectionChange)="onGeoJSONSelect($event)">
+      <mat-option [value]="'assets/provinces.geojson'">Provinces</mat-option>
+      <mat-option [value]="'assets/regions.geojson'">Regions</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <!-- map.component.html -->
+<mat-card>
     <mat-divider></mat-divider>
     <mat-card-content>
-      <div id="mapViewDiv" style="height: 500px;"></div>
+      <div *ngIf="isLoading" class="loading-spinner">
+        <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+      </div>
+      <div id="mapViewDiv" style="height: 500px" [class.hidden]="isLoading"></div>
+      <div id="editorDiv" class="editor-container"></div>
     </mat-card-content>
-  </mat-card>
+</mat-card>
+
+
 </div>
 
