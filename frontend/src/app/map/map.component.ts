@@ -3,6 +3,8 @@ import MapView from '@arcgis/core/views/MapView';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import {MapService} from "../services/map.service";
+import {NearbyStationsDialogComponent} from "../nearby-stations-dialog/nearby-stations-dialog.component";
+import {MatDialog} from "@angular/material/dialog";
 
 @Component({
   selector: 'app-map',
@@ -24,8 +26,10 @@ export class MapComponent implements OnInit {
   ];
   selectedBasemap: string = 'streets';
   isLoading: boolean = true;
+  stationsLoaded: boolean = false;
+  nearbyStationsLoaded: boolean = false;
 
-  constructor(private mapService: MapService) {}
+  constructor(private mapService: MapService,private dialog: MatDialog) {}
 
   ngOnInit(): void {
     this.graphicsLayer = this.mapService.getGraphicsLayer();
@@ -65,4 +69,39 @@ export class MapComponent implements OnInit {
     }
   }
 
+  loadStations(): void {
+    if (this.stationsLoaded) {
+      // Clear stations from map
+      this.mapService.clearStations();
+      this.stationsLoaded = false;
+    } else {
+      // Load stations to map
+      this.mapService.displayStations();
+      this.stationsLoaded = true;
+    }
+  }
+
+  openNearbyStationsDialog(): void {
+    const dialogRef = this.dialog.open(NearbyStationsDialogComponent, {
+      width: '350px'
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        const { latitude, longitude, distance } = result;
+        this.mapService.clearStations();
+        this.mapService.loadNearbyStations(latitude, longitude, distance);
+        this.nearbyStationsLoaded = true;
+      }
+    });
+  }
+
+
+  clearWithinStations(){
+    this.mapService.clearWithinStations();
+    this.nearbyStationsLoaded = false;
+  }
+
+  clearStations() {
+    this.mapService.clearStations();
+  }
 }

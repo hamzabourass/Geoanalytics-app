@@ -1,22 +1,47 @@
 <div class="container">
-<mat-form-field>
-  <mat-label>Select Basemap</mat-label>
-  <mat-select [(value)]="selectedBasemap" (selectionChange)="onBasemapChange()">
-    <mat-option *ngFor="let basemap of basemaps" [value]="basemap.value">
-      {{ basemap.name }}
-    </mat-option>
-  </mat-select>
-</mat-form-field>
+  <div class="form-container">
+    <div class="form-field">
+      <mat-form-field>
+        <mat-label>Select Basemap</mat-label>
+        <mat-select [(value)]="selectedBasemap" (selectionChange)="onBasemapChange()">
+          <mat-option *ngFor="let basemap of basemaps" [value]="basemap.value">
+            {{ basemap.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
 
-  <mat-form-field>
-    <mat-label>Select GeoJSON</mat-label>
-    <mat-select (selectionChange)="onGeoJSONSelect($event)">
-      <mat-option [value]="'assets/provinces.geojson'">Provinces</mat-option>
-      <mat-option [value]="'assets/regions.geojson'">Regions</mat-option>
-    </mat-select>
-  </mat-form-field>
+    <div class="form-field">
+      <mat-form-field>
+        <mat-label>Select GeoJSON</mat-label>
+        <mat-select (selectionChange)="onGeoJSONSelect($event)">
+          <mat-option [value]="'assets/provinces.geojson'">Provinces</mat-option>
+          <mat-option [value]="'assets/regions.geojson'">Regions</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
 
-  <!-- map.component.html -->
+    <div class="form-field">
+      <button mat-raised-button [style.height.px]="55"
+              [style.backgroundColor]="stationsLoaded ? '#FFA500' : '#FFF'"
+              (click)="loadStations()">
+        {{ stationsLoaded ? 'Hide Stations' : 'Load Stations' }}
+      </button>
+    </div>
+
+    <div class="form-field">
+      <button mat-raised-button style="height: 55px; background-color: #2196F3; color: white;"
+              (click)="nearbyStationsLoaded ? clearWithinStations() : openNearbyStationsDialog()">
+        {{ nearbyStationsLoaded ? 'Hide Stations' : 'Load Nearby Stations' }}
+      </button>
+    </div>
+
+
+
+
+  </div>
+
+  <div *ngIf="isLoading">Loading...</div>
 <mat-card>
     <mat-divider></mat-divider>
     <mat-card-content>

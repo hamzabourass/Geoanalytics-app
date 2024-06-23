@@ -5,9 +5,12 @@ import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import Editor from '@arcgis/core/widgets/Editor';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import Sketch from "@arcgis/core/widgets/Sketch";
-import Polygon from "@arcgis/core/geometry/Polygon";
-import Polyline from "@arcgis/core/geometry/Polyline";
 import GeoJSONLayer from "@arcgis/core/layers/GeoJSONLayer";
+import Graphic from "@arcgis/core/Graphic";
+import SimpleMarkerSymbol from "@arcgis/core/symbols/SimpleMarkerSymbol";
+import Point from "@arcgis/core/geometry/Point";
+import {TransportStationService} from "./transport-station.service";
+import Extent from "@arcgis/core/geometry/Extent";
 
 @Injectable({
   providedIn: 'root'
@@ -20,8 +23,9 @@ export class MapService {
   private readonly lineLayer: FeatureLayer;
   private readonly polygonLayer: FeatureLayer;
   private selectedBasemap: string = 'streets';
-
-  constructor() {
+  private stationGraphics: Graphic[] = [];
+  private stationWithinGraphics: Graphic[]=[];
+  constructor(private stationService: TransportStationService) {
     this.map = new EsriMap({
       basemap: this.selectedBasemap
     });
@@ -235,5 +239,126 @@ export class MapService {
     });
 
     this.map.add(geoJSONLayer);
+  }
+
+
+  displayStations(): void {
+    this.stationService.getStations().subscribe(
+      stations => {
+        stations.forEach(station => {
+          const point = new Point({
+            x: station.geometry.longitude,
+            y: station.geometry.latitude,
+            spatialReference: { wkid: 4326 } // Assuming WGS84 coordinate system
+          });
+
+          const markerSymbol = new SimpleMarkerSymbol({
+            color: [226, 119, 40],
+            outline: {
+              color: [0, 0, 0],
+              width: 1
+            },
+            size: 8
+          });
+
+          const graphic = new Graphic({
+            geometry: point,
+            symbol: markerSymbol,
+            attributes: {
+              id: station.id,
+              name: station.name,
+              code: station.code,
+              fclass: station.fclass
+            },
+            popupTemplate: {
+              title: `{name}`,
+              content: [{
+                type: 'text',
+                text: `ID: {id}<br>Code: {code}<br>fclass:{fclass}`
+              }]
+            }
+          });
+
+
+          this.stationGraphics.push(graphic); // Store graphic reference
+          this.graphicsLayer.add(graphic);
+
+        });
+      },
+      error => {
+        console.error('Error fetching stations:', error);
+      }
+    );
+  }
+  loadNearbyStations(latitude: number, longitude: number, distanceMeters: number): void {
+    // Clear existing stations
+    this.clearStations();
+
+    // Fetch nearby stations
+    this.stationService.getNearbyStations(latitude, longitude, distanceMeters).subscribe(
+      stations => {
+        stations.forEach(station => {
+          const point = new Point({
+            x: station.geometry.longitude,
+            y: station.geometry.latitude,
+            spatialReference: { wkid: 4326 } // Assuming WGS84 coordinate system
+          });
+
+          const markerSymbol = new SimpleMarkerSymbol({
+            color: [226, 119, 40],
+            outline: {
+              color: [255, 255, 255],
+              width: 1
+            },
+            size: 8
+          });
+
+          const graphic = new Graphic({
+            geometry: point,
+            symbol: markerSymbol,
+            attributes: {
+              id: station.id,
+              name: station.name,
+              code: station.code,
+              fclass: station.fclass
+            },
+            popupTemplate: {
+              title: `{name}`,
+              content: [{
+                type: 'text',
+                text: `ID: {id}<br>Code: {code}<br>fclass:{fclass}`
+              }]
+            }
+          });
+
+          this.stationWithinGraphics.push(graphic); // Store graphic reference
+          this.graphicsLayer.add(graphic);
+        });
+
+        this.mapView.goTo({
+          center: [longitude, latitude],  // Note: Longitude first, then latitude
+          zoom: 10  // Adjust zoom level as needed
+        }).then(r => {
+          console.log("zooming")
+        });
+      },
+      error => {
+        console.error('Error fetching nearby stations:', error);
+      }
+    );
+  }
+
+  clearWithinStations(): void {
+    this.stationWithinGraphics.forEach(graphic => {
+      this.graphicsLayer.remove(graphic); // Remove each graphic from the layer
+    });
+    this.stationGraphics = []; // Clear the array
+  }
+
+  clearStations(): void {
+    this.stationGraphics.forEach(graphic => {
+      this.graphicsLayer.remove(graphic); // Remove each graphic from the layer
+    });
+    this.stationGraphics = []; // Clear the array
   }
 }

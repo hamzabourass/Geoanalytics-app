@@ -17,12 +17,19 @@ import {MatCard, MatCardContent, MatCardHeader,MatCardTitle} from "@angular/mate
 import {MatDivider} from "@angular/material/divider";
 import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {MapService} from "./services/map.service";
+import {HttpClientModule} from "@angular/common/http";
+import { NearbyStationsDialogComponent } from './nearby-stations-dialog/nearby-stations-dialog.component';
+import {MatDialogClose, MatDialogModule} from "@angular/material/dialog";
+import {FormsModule} from "@angular/forms";
+import {MatInput} from "@angular/material/input";
+import {CdkOverlayOrigin} from "@angular/cdk/overlay";
 
 @NgModule({
   declarations: [
     AppComponent,
     MapComponent,
-    TemplateComponent
+    TemplateComponent,
+    NearbyStationsDialogComponent
   ],
   imports: [
     BrowserModule,
@@ -44,7 +51,13 @@ import {MapService} from "./services/map.service";
     MatDivider,
     MatCardContent,
     MatCardTitle,
-    MatProgressSpinner
+    MatProgressSpinner,
+    HttpClientModule,
+    MatDialogClose,
+    FormsModule,
+    MatDialogModule,
+    MatInput,
+    CdkOverlayOrigin
 
   ],
   providers: [
