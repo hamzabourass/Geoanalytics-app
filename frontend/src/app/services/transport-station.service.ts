@@ -54,9 +54,10 @@ export class TransportStationService {
     );
   }
 
-  getStationsWithinPolygon(polygonCoordinates: any[]): Observable<Station[]> {
+  getStationsWithinPolygon(polygonCoordinates: any): Observable<Station[]> {
+    console.log('get station within polygon invoked')
     const url = `${this.apiUrl}/withinPolygon`;
-    return this.http.post<Station[]>(url, { coordinates: polygonCoordinates }).pipe(
+    return this.http.post<Station[]>(url, polygonCoordinates).pipe(
       map((response: Station[]) => {
         if (response == null) {
           throw new Error('Response is null or undefined');

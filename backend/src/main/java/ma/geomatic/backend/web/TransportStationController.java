@@ -12,6 +12,7 @@ import java.util.List;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/api/stations")
+@CrossOrigin(origins = "http://localhost:4200")
 public class TransportStationController {
 
     private final TransportStationService transportStationService;

@@ -11,6 +11,7 @@ import SimpleMarkerSymbol from "@arcgis/core/symbols/SimpleMarkerSymbol";
 import Point from '@arcgis/core/geometry/Point';
 import {TransportStationService} from "./transport-station.service";
 import Polygon from "@arcgis/core/geometry/Polygon";
+import {Station} from "../models/station.model";
 
 @Injectable({
   providedIn: 'root'
@@ -173,31 +174,6 @@ export class MapService {
       ]
     });
 
-    editor.on('sketch-create', (event) => {
-      const graphic = event.detail;
-
-      console.log(graphic)
-
-      if (graphic) {
-        const geometry = graphic.graphic;
-
-        if (geometry) {
-          if (geometry.geometry.type === 'point') {
-            this.graphicsLayer.removeAll();
-            const coordinates = geometry.geometry as Point;
-            this.loadNearbyStations(coordinates.latitude,coordinates.longitude, 2000)
-            console.log('Point Coordinates:', coordinates.longitude , coordinates.latitude);
-          } else if (geometry.geometry.type === 'polygon') {
-            this.graphicsLayer.removeAll();
-            const polygonGeometry = geometry.geometry as Polygon;
-            console.log('Polygon Rings:', polygonGeometry.rings);
-          } else if (geometry.geometry.type === 'polyline') {
-            console.log('Polyline Paths:', geometry.geometry.toJSON().paths);
-          }
-        }
-      }
-    });
-
     editor.on('sketch-update', (event) => {
       const updatedGraphics = event.detail;
 
@@ -213,7 +189,25 @@ export class MapService {
               console.log('Updated Point Coordinates:', coordinates.longitude, coordinates.latitude);
             } else if (geometry.type === 'polygon') {
               this.graphicsLayer.removeAll();
-              console.log('Updated Polygon Rings:', geometry.toJSON().rings);
+              const polygonGeometry = geometry as Polygon;
+              const convertedRings = this.convertPolygonRings(polygonGeometry.rings);
+              console.log('Converted Polygon Rings:', convertedRings);
+
+              const payload = {
+                coordinates: convertedRings
+              };
+              console.log('Payload for API:', payload);
+              console.log('Payload for API:', payload);
+
+              this.stationService.getStationsWithinPolygon(payload).subscribe(
+                response => {
+                  console.log('Response from API:', response);
+                  this.loadStationsWithinPolygon(response)
+                },
+                error => {
+                  console.error('Error sending polygon to API:', error);
+                }
+              );
             } else if (geometry.type === 'polyline') {
               console.log('Updated Polyline Paths:', geometry.toJSON().paths);
             }
@@ -221,6 +215,7 @@ export class MapService {
         });
       }
     });
+
 
 
 
@@ -270,6 +265,30 @@ export class MapService {
 
 
 
+   convertPolygonRings = (rings: number[][][]): { longitude: number, latitude: number }[] => {
+    // Convert each ring of points
+    const formattedCoordinates: { longitude: number, latitude: number }[] = [];
+
+    rings.forEach(ring => {
+      ring.forEach(point => {
+        const [longitude, latitude] = this.convertToGeographic(point[0], point[1]); // Convert projected to geographic
+        formattedCoordinates.push({ longitude, latitude });
+      });
+    });
+
+    return formattedCoordinates;
+  };
+
+   convertToGeographic = (x: number, y: number): [number, number] => {
+    const point = new Point({
+      x: x,
+      y: y,
+      spatialReference: { wkid: 3857 } // Assuming the coordinates are in EPSG:3857 (Web Mercator)
+    });
+
+    return [point.longitude, point.latitude]; // Returns [longitude, latitude]
+  };
+
   displayStations(): void {
     this.stationService.getStations().subscribe(
       stations => {
@@ -317,6 +336,57 @@ export class MapService {
         console.error('Error fetching stations:', error);
       }
     );
+  }
+
+  loadStationsWithinPolygon(stations: Station[]): void {
+    this.clearStations();
+    stations.forEach(station => {
+      const point = new Point({
+        x: station.geometry.longitude,
+        y: station.geometry.latitude,
+        spatialReference: { wkid: 4326 } // Assuming WGS84 coordinate system
+      });
+
+      const markerSymbol = new SimpleMarkerSymbol({
+        color: [226, 119, 40],
+        outline: {
+          color: [255, 255, 255],
+          width: 1
+        },
+        size: 8
+      });
+
+      const graphic = new Graphic({
+        geometry: point,
+        symbol: markerSymbol,
+        attributes: {
+          id: station.id,
+          name: station.name,
+          code: station.code,
+          fclass: station.fclass
+        },
+        popupTemplate: {
+          title: `{name}`,
+          content: [{
+            type: 'text',
+            text: `ID: {id}<br>Code: {code}<br>fclass: {fclass}`
+          }]
+        }
+      });
+
+      this.stationWithinGraphics.push(graphic); // Store graphic reference
+      this.graphicsLayer.add(graphic);
+    });
+
+    if (this.stationWithinGraphics.length > 0) {
+      const extent = this.graphicsLayer.graphics.reduce((acc, graphic) => {
+        return acc ? acc.union(graphic.geometry.extent) : graphic.geometry.extent;
+      }, null as any);
+
+      this.mapView.goTo(extent).catch(error => {
+        console.error('Error zooming to stations:', error);
+      });
+    }
   }
 
   loadNearbyStations(latitude: number, longitude: number, distanceMeters: number): void {
