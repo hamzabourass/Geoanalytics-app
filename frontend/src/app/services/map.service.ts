@@ -8,9 +8,9 @@ import Sketch from "@arcgis/core/widgets/Sketch";
 import GeoJSONLayer from "@arcgis/core/layers/GeoJSONLayer";
 import Graphic from "@arcgis/core/Graphic";
 import SimpleMarkerSymbol from "@arcgis/core/symbols/SimpleMarkerSymbol";
-import Point from "@arcgis/core/geometry/Point";
+import Point from '@arcgis/core/geometry/Point';
 import {TransportStationService} from "./transport-station.service";
-import Extent from "@arcgis/core/geometry/Extent";
+import Polygon from "@arcgis/core/geometry/Polygon";
 
 @Injectable({
   providedIn: 'root'
@@ -25,6 +25,7 @@ export class MapService {
   private selectedBasemap: string = 'streets';
   private stationGraphics: Graphic[] = [];
   private stationWithinGraphics: Graphic[]=[];
+  private currentGeoJsonLayer: GeoJSONLayer | null = null;
   constructor(private stationService: TransportStationService) {
     this.map = new EsriMap({
       basemap: this.selectedBasemap
@@ -34,12 +35,14 @@ export class MapService {
 
     this.pointLayer = new FeatureLayer({
       source: [],
-      title: 'Points',
-      blendMode:"darken",
+      title: 'Find near stations by point',
+      blendMode: "difference",
       fields: [
         { name: 'ObjectID', alias: 'ObjectID', type: 'oid' },
         { name: 'Name', alias: 'Name', type: 'string' },
         { name: 'Description', alias: 'Description', type: 'string' },
+        { name: 'Distance', alias: 'Distance', type: 'double' },
+
       ],
       objectIdField: 'ObjectID',
       geometryType: 'point',
@@ -51,6 +54,8 @@ export class MapService {
           fieldInfos: [
             { fieldName: "Name", label: "Name", visible: true },
             { fieldName: "Description", label: "Description", visible: true },
+            { fieldName: "Distance", label: "Distance", visible: true },
+
           ]
         }]
       }
@@ -59,6 +64,7 @@ export class MapService {
     this.lineLayer = new FeatureLayer({
       title: 'Line',
       source: [],
+      blendMode: "difference",
       fields: [
         { name: 'ObjectID', alias: 'ObjectID', type: 'oid' },
         { name: 'Name', alias: 'Name', type: 'string' },
@@ -80,7 +86,8 @@ export class MapService {
     });
 
     this.polygonLayer = new FeatureLayer({
-      title: 'Polygon',
+      title: 'Find stations within a user-drawn polygon',
+      blendMode: "difference",
       source: [],
       fields: [
         { name: 'ObjectID', alias: 'ObjectID', type: 'oid' },
@@ -166,25 +173,56 @@ export class MapService {
       ]
     });
 
-    // Handle 'sketch-create' event for capturing new geometry coordinates
     editor.on('sketch-create', (event) => {
       const graphic = event.detail;
+
+      console.log(graphic)
 
       if (graphic) {
         const geometry = graphic.graphic;
 
         if (geometry) {
           if (geometry.geometry.type === 'point') {
-            console.log('Point Coordinates:', geometry.geometry.toJSON().x , geometry.geometry.toJSON().y);
+            this.graphicsLayer.removeAll();
+            const coordinates = geometry.geometry as Point;
+            this.loadNearbyStations(coordinates.latitude,coordinates.longitude, 2000)
+            console.log('Point Coordinates:', coordinates.longitude , coordinates.latitude);
           } else if (geometry.geometry.type === 'polygon') {
-            const polygonGeometry = geometry.geometry;
-            console.log('Polygon Rings:', geometry.geometry.toJSON().rings);
+            this.graphicsLayer.removeAll();
+            const polygonGeometry = geometry.geometry as Polygon;
+            console.log('Polygon Rings:', polygonGeometry.rings);
           } else if (geometry.geometry.type === 'polyline') {
             console.log('Polyline Paths:', geometry.geometry.toJSON().paths);
           }
         }
       }
     });
+
+    editor.on('sketch-update', (event) => {
+      const updatedGraphics = event.detail;
+
+      if (updatedGraphics) {
+        updatedGraphics.graphics.forEach(updatedGraphic => {
+          const geometry = updatedGraphic.geometry;
+
+          if (geometry) {
+            if (geometry.type === 'point') {
+              this.graphicsLayer.removeAll();
+              const coordinates = geometry as Point;
+              this.loadNearbyStations(coordinates.latitude, coordinates.longitude, 2000);
+              console.log('Updated Point Coordinates:', coordinates.longitude, coordinates.latitude);
+            } else if (geometry.type === 'polygon') {
+              this.graphicsLayer.removeAll();
+              console.log('Updated Polygon Rings:', geometry.toJSON().rings);
+            } else if (geometry.type === 'polyline') {
+              console.log('Updated Polyline Paths:', geometry.toJSON().paths);
+            }
+          }
+        });
+      }
+    });
+
+
 
     const sketch = new Sketch({
       view: view,
@@ -197,49 +235,39 @@ export class MapService {
     view.ui.add(editor, 'top-right');
   }
 
-  displayGeoJSON(url: string): void {
-    const geoJSONLayer = new GeoJSONLayer({
-      url: url,
-      blendMode: "average",
-      popupTemplate: {
-        title: '{title}',
-        content: [
-          {
-            type: 'fields',
-            fieldInfos: [
-              {
-                fieldName: 'OBJECTID', // Adjust based on your properties
-                label: 'Object ID',
-                visible: true
-              },
-              {
-                fieldName: 'Nom', // Adjust based on your properties
-                label: 'Name',
-                visible: true
-              },
-              {
-                fieldName: 'CODE_PROVI', // Adjust based on your properties
-                label: 'Province Code',
-                visible: true
-              },
-              {
-                fieldName: 'NOM_PROV', // Adjust based on your properties
-                label: 'Province Name',
-                visible: true
-              },
-              {
-                fieldName: 'NOM_REG', // Adjust based on your properties
-                label: 'Region Name',
-                visible: true
-              }
-            ]
-          }
-        ]
-      }
-    });
+  displayGeoJSON(url: string | null): void {
+    // Remove existing GeoJSON layer if it exists
+    if (this.currentGeoJsonLayer) {
+      this.map.remove(this.currentGeoJsonLayer);
+      this.currentGeoJsonLayer = null;
+    }
 
-    this.map.add(geoJSONLayer);
+    if (url) {
+      // Add new GeoJSON layer
+      this.currentGeoJsonLayer = new GeoJSONLayer({
+        url: url,
+        blendMode: 'average',
+        popupTemplate: {
+          title: '{title}',
+          content: [
+            {
+              type: 'fields',
+              fieldInfos: [
+                { fieldName: 'OBJECTID', label: 'Object ID', visible: true },
+                { fieldName: 'Nom', label: 'Name', visible: true },
+                { fieldName: 'CODE_PROVI', label: 'Province Code', visible: true },
+                { fieldName: 'NOM_PROV', label: 'Province Name', visible: true },
+                { fieldName: 'NOM_REG', label: 'Region Name', visible: true }
+              ]
+            }
+          ]
+        }
+      });
+
+      this.map.add(this.currentGeoJsonLayer);
+    }
   }
+
 
 
   displayStations(): void {
@@ -290,10 +318,12 @@ export class MapService {
       }
     );
   }
+
   loadNearbyStations(latitude: number, longitude: number, distanceMeters: number): void {
     // Clear existing stations
     this.clearStations();
 
+    console.log("called with :",  )
     // Fetch nearby stations
     this.stationService.getNearbyStations(latitude, longitude, distanceMeters).subscribe(
       stations => {
@@ -336,8 +366,8 @@ export class MapService {
         });
 
         this.mapView.goTo({
-          center: [longitude, latitude],  // Note: Longitude first, then latitude
-          zoom: 10  // Adjust zoom level as needed
+          center: [longitude, latitude],
+          zoom: 10
         }).then(r => {
           console.log("zooming")
         });
@@ -350,15 +380,15 @@ export class MapService {
 
   clearWithinStations(): void {
     this.stationWithinGraphics.forEach(graphic => {
-      this.graphicsLayer.remove(graphic); // Remove each graphic from the layer
+      this.graphicsLayer.remove(graphic);
     });
-    this.stationGraphics = []; // Clear the array
+    this.stationGraphics = [];
   }
 
   clearStations(): void {
     this.stationGraphics.forEach(graphic => {
-      this.graphicsLayer.remove(graphic); // Remove each graphic from the layer
+      this.graphicsLayer.remove(graphic);
     });
-    this.stationGraphics = []; // Clear the array
+    this.stationGraphics = [];
   }
 }

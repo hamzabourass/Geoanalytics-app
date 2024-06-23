@@ -64,20 +64,22 @@ export class MapComponent implements OnInit {
 
   onGeoJSONSelect(event: any): void {
     const selectedGeoJSON = event.value;
-    if (selectedGeoJSON) {
-      this.mapService.displayGeoJSON(selectedGeoJSON);
-    }
+    this.mapService.displayGeoJSON(selectedGeoJSON);
+
   }
+
 
   loadStations(): void {
     if (this.stationsLoaded) {
-      // Clear stations from map
+
       this.mapService.clearStations();
       this.stationsLoaded = false;
+
     } else {
-      // Load stations to map
+
       this.mapService.displayStations();
       this.stationsLoaded = true;
+
     }
   }
 
@@ -103,5 +105,6 @@ export class MapComponent implements OnInit {
 
   clearStations() {
     this.mapService.clearStations();
+    this.stationsLoaded= true;
   }
 }

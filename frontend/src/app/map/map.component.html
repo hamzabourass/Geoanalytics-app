@@ -17,6 +17,8 @@
         <mat-select (selectionChange)="onGeoJSONSelect($event)">
           <mat-option [value]="'assets/provinces.geojson'">Provinces</mat-option>
           <mat-option [value]="'assets/regions.geojson'">Regions</mat-option>
+          <mat-option [value]="null">None</mat-option>
+
         </mat-select>
       </mat-form-field>
     </div>

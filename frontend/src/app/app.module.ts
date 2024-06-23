@@ -23,6 +23,7 @@ import {MatDialogClose, MatDialogModule} from "@angular/material/dialog";
 import {FormsModule} from "@angular/forms";
 import {MatInput} from "@angular/material/input";
 import {CdkOverlayOrigin} from "@angular/cdk/overlay";
+import {MatButtonToggle, MatButtonToggleGroup} from "@angular/material/button-toggle";
 
 @NgModule({
   declarations: [
@@ -57,7 +58,9 @@ import {CdkOverlayOrigin} from "@angular/cdk/overlay";
     FormsModule,
     MatDialogModule,
     MatInput,
-    CdkOverlayOrigin
+    CdkOverlayOrigin,
+    MatButtonToggleGroup,
+    MatButtonToggle
 
   ],
   providers: [

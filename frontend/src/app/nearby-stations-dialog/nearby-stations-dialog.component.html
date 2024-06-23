@@ -1,15 +1,16 @@
+
 <h2 mat-dialog-title>Enter Nearby Stations Parameters</h2>
-<div mat-dialog-content>
-  <mat-form-field>
+<mat-dialog-content >
+  <mat-form-field >
     <input matInput type="number" placeholder="Longitude" [(ngModel)]="longitude" name="longitude">
   </mat-form-field>
   <mat-form-field>
-    <input matInput type="number" placeholder="Latitude" [(ngModel)]="latitude" name="latitude">
+    <input  matInput type="number" placeholder="Latitude" [(ngModel)]="latitude" name="latitude">
   </mat-form-field>
   <mat-form-field>
     <input matInput type="number" placeholder="Distance (in meters)" [(ngModel)]="distance" name="distance">
   </mat-form-field>
-</div>
+</mat-dialog-content>
 <div mat-dialog-actions>
   <button mat-button (click)="onNoClick()">Cancel</button>
   <button mat-button [mat-dialog-close]="{ latitude: latitude, longitude: longitude, distance: distance }" cdk-overlay-origin>Load</button>

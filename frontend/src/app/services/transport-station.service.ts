@@ -16,19 +16,20 @@ export class TransportStationService {
   getStations(): Observable<Station[]> {
     return this.http.get<Station[]>(`${this.apiUrl}`).pipe(
       map((response: Station[]) => {
-        // Ensure response is not null or undefined
+
         if (response == null) {
           throw new Error('Response is null or undefined');
         }
 
-        // Filter out stations with null latitude or longitude
+
+        // filter stations with null data on their data
         return response.filter(station =>
           station.geometry && station.geometry.longitude != null && station.geometry.latitude != null
         );
       }),
       catchError((error) => {
         console.error('Error fetching stations:', error);
-        return throwError(error); // Rethrow the error or handle as needed
+        return throwError(error);
       })
     );
   }
@@ -37,21 +38,38 @@ export class TransportStationService {
     const url = `${this.apiUrl}/within?longitude=${longitude}&latitude=${latitude}&distance=${distanceMeters}`;
     return this.http.get<Station[]>(url).pipe(
       map((response: Station[]) => {
-        // Ensure response is not null or undefined
+
         if (response == null) {
           throw new Error('Response is null or undefined');
         }
 
-        // Filter out stations with null latitude or longitude
         return response.filter(station =>
           station.geometry && station.geometry.longitude != null && station.geometry.latitude != null
         );
       }),
       catchError((error) => {
         console.error('Error fetching stations:', error);
-        return throwError(error); // Rethrow the error or handle as needed
+        return throwError(error);
       })
-    );;
+    );
+  }
+
+  getStationsWithinPolygon(polygonCoordinates: any[]): Observable<Station[]> {
+    const url = `${this.apiUrl}/withinPolygon`;
+    return this.http.post<Station[]>(url, { coordinates: polygonCoordinates }).pipe(
+      map((response: Station[]) => {
+        if (response == null) {
+          throw new Error('Response is null or undefined');
+        }
+        return response.filter(station =>
+          station.geometry && station.geometry.longitude != null && station.geometry.latitude != null
+        );
+      }),
+      catchError((error) => {
+        console.error('Error fetching stations within polygon:', error);
+        return throwError(error);
+      })
+    );
   }
 
 }
