@@ -4,7 +4,7 @@ import {MapService} from "../services/map.service";
 import {NearbyStationsDialogComponent} from "../nearby-stations-dialog/nearby-stations-dialog.component";
 import {MatDialog} from "@angular/material/dialog";
 import {provincesData} from "../data/provincesData";
-
+import {stationTypeData} from "../data/stationTypeData";
 @Component({
   selector: 'app-map',
   templateUrl: './map.component.html',
@@ -24,10 +24,14 @@ export class MapComponent implements OnInit {
   stationsLoaded: boolean = false;
   nearbyStationsLoaded: boolean = false;
   provinces: { id: number | null, name: string }[] = provincesData;
+  stationTypes: { code: number | null, name: string }[] = stationTypeData;
   selectedProvinceId: number | null = null;
   searchKey: any;
+  selectedStationCode: number | null = null;
 
-  constructor(private mapService: MapService,private dialog: MatDialog) {}
+  constructor(private mapService: MapService,private dialog: MatDialog) {
+
+  }
 
   ngOnInit(): void {
     this.mapView = this.mapService.initializeMapView('mapViewDiv');
@@ -59,26 +63,36 @@ export class MapComponent implements OnInit {
 
   onProvinceSelect(): void {
     if (this.selectedProvinceId !== null) {
-      // Assuming your GeoJSON URL for provinces is known and provided here
       const geoJsonUrl = 'assets/provinces.geojson';
       this.mapService.displayGeoJSON(geoJsonUrl);
       this.mapService.displayProvinceByObjectId(this.selectedProvinceId);
     }
     else{
       this.mapService.displayProvinceByObjectId(null);
+      this.mapService.displayGeoJSON(null);
 
+    }
+  }
+
+  onStationTypeSelect(): void {
+    if (this.selectedStationCode !== null) {
+      this.mapService.clearStations();
+      this.clearWithinStations();
+      this.mapService.stationByCode(this.selectedStationCode);
+      this.stationsLoaded = false;
+    }
+    else{
+      this.mapService.clearStations();
     }
   }
 
 
   loadStations(): void {
     if (this.stationsLoaded) {
-
       this.mapService.clearStations();
       this.stationsLoaded = false;
 
     } else {
-
       this.mapService.displayStations();
       this.stationsLoaded = true;
 
@@ -92,7 +106,6 @@ export class MapComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         const { latitude, longitude, distance } = result;
-        this.mapService.clearStations();
         this.mapService.loadNearbyStations(latitude, longitude, distance);
         this.nearbyStationsLoaded = true;
       }
@@ -108,10 +121,20 @@ export class MapComponent implements OnInit {
   search(): void {
     if (this.searchKey.trim() !== '') {
       this.mapService.clearStations();
+      this.clearWithinStations();
       this.mapService.searchStations(this.searchKey.trim());
+      this.stationsLoaded = false;
     } else {
       this.mapService.clearStations();
-      this.stationsLoaded = false;
     }
+  }
+
+  clearAll(): void {
+    this.mapService.removeAll();
+    this.mapView.graphics.removeAll();
+    this.mapService.displayProvinceByObjectId(null);
+    this.mapService.displayGeoJSON(null);
+    this.stationsLoaded = false;
+    this.nearbyStationsLoaded = false;
   }
 }

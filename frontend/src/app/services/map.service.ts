@@ -15,6 +15,7 @@ import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
 import {Injectable} from "@angular/core";
 import EsriMap from '@arcgis/core/Map';
 import SimpleFillSymbol from "@arcgis/core/symbols/SimpleFillSymbol";
+import Geometry from "@arcgis/core/geometry/Geometry";
 
 @Injectable({
   providedIn: 'root'
@@ -115,14 +116,11 @@ export class MapService {
 
         if (geometry) {
           if (geometry.type === 'point') {
-            this.graphicsLayer.removeAll();
             const coordinates = geometry as Point;
             this.loadNearbyStations(coordinates.latitude, coordinates.longitude, 2000);
           } else if (geometry.type === 'polygon') {
-            this.graphicsLayer.removeAll();
             const polygonGeometry = geometry as Polygon;
             const convertedRings = this.geometryService.convertPolygonRings(polygonGeometry.rings);
-
             const payload = { coordinates: convertedRings };
             this.stationService.getStationsWithinPolygon(payload).subscribe(
               (response: Station[]) => this.loadStationsWithinPolygon(response),
@@ -136,6 +134,11 @@ export class MapService {
     }
   }
 
+  removeAll(){
+    this.graphicsLayer.removeAll();
+  }
+
+  // Display provinces and regions from geojson files
   displayGeoJSON(url: string | null): void {
     if (this.currentGeoJsonLayer) {
       this.map.remove(this.currentGeoJsonLayer);
@@ -227,6 +230,7 @@ export class MapService {
           const graphic = this.createStationGraphic(station);
           this.stationGraphics.push(graphic);
           this.graphicsLayer.add(graphic);
+          this.mapView.graphics.add(graphic);
         });
       },
         (error: any)=> console.error('Error fetching stations:', error)
@@ -240,7 +244,24 @@ export class MapService {
           const graphic = this.createStationGraphic(station);
           this.stationGraphics.push(graphic);
           this.graphicsLayer.add(graphic);
+          this.mapView.graphics.add(graphic);
         });
+
+      },
+      (error: any)=> console.error('Error fetching stations:', error)
+    );
+  }
+
+  stationByCode(code:  number): void{
+    this.stationService.stationByCode(code).subscribe(
+      (stations: Station[]) => {
+        stations.forEach(station => {
+          const graphic = this.createStationGraphic(station);
+          this.stationGraphics.push(graphic);
+          this.graphicsLayer.add(graphic);
+          this.mapView.graphics.add(graphic);
+        });
+
       },
       (error: any)=> console.error('Error fetching stations:', error)
     );
@@ -278,6 +299,7 @@ export class MapService {
     });
   }
 
+
   loadStationsWithinPolygon(stations: Station[]): void {
     this.clearStations();
     stations.forEach(station => {
@@ -304,6 +326,7 @@ export class MapService {
           const graphic = this.createStationGraphic(station);
           this.stationWithinGraphics.push(graphic);
           this.graphicsLayer.add(graphic);
+          this.mapView.graphics.add(graphic);
         });
 
         this.mapView.goTo({
@@ -316,12 +339,35 @@ export class MapService {
   }
 
   clearStations(): void {
-    this.stationGraphics.forEach(graphic => this.graphicsLayer.remove(graphic));
+    this.stationGraphics.forEach(graphic => this.mapView.graphics.remove(graphic));
     this.stationGraphics = [];
   }
 
   clearWithinStations(): void {
-    this.stationWithinGraphics.forEach(graphic => this.graphicsLayer.remove(graphic));
+    this.stationWithinGraphics.forEach(graphic => this.mapView.graphics.remove(graphic));
     this.stationGraphics = [];
   }
+
+  private zoomToGraphicsExtent(): void {
+    if (this.stationGraphics.length > 0) {
+      let combinedExtent: any = null;
+
+      this.stationGraphics.forEach(graphic => {
+        const geometry = graphic.geometry as Geometry;
+        const graphicExtent = geometry.extent;
+
+        if (!combinedExtent) {
+          combinedExtent = graphicExtent.clone();
+        } else {
+          combinedExtent = combinedExtent.union(graphicExtent);
+        }
+      });
+
+      // Zoom to the combined extent
+      if (combinedExtent) {
+        this.mapView.goTo({ target: combinedExtent });
+      }
+    }
+  }
+
 }

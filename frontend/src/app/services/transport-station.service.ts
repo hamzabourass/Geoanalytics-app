@@ -78,4 +78,9 @@ export class TransportStationService {
     return this.http.get<Station[]>(url);
   }
 
+  stationByCode(code: number): Observable<any[]> {
+    const url = `${this.apiUrl}/byCode/${code}`;
+    return this.http.get<Station[]>(url);
+  }
+
 }

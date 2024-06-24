@@ -13,7 +13,7 @@ import {MatIcon} from "@angular/material/icon";
 import {MatMenu, MatMenuItem, MatMenuTrigger} from "@angular/material/menu";
 import {MatDrawer,MatDrawerContent, MatDrawerContainer} from "@angular/material/sidenav";
 import {MatNavList} from "@angular/material/list";
-import {MatCard, MatCardContent, MatCardHeader,MatCardTitle} from "@angular/material/card";
+import {MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardTitle} from "@angular/material/card";
 import {MatDivider} from "@angular/material/divider";
 import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {MapService} from "./services/map.service";
@@ -25,6 +25,7 @@ import {MatInput} from "@angular/material/input";
 import {CdkOverlayOrigin} from "@angular/cdk/overlay";
 import {MatButtonToggle, MatButtonToggleGroup} from "@angular/material/button-toggle";
 import { ChartComponent } from './chart/chart.component';
+import { PageNotFoundComponent } from './page-not-found/page-not-found.component';
 
 @NgModule({
   declarations: [
@@ -32,7 +33,8 @@ import { ChartComponent } from './chart/chart.component';
     MapComponent,
     TemplateComponent,
     NearbyStationsDialogComponent,
-    ChartComponent
+    ChartComponent,
+    PageNotFoundComponent
   ],
   imports: [
     BrowserModule,
@@ -62,7 +64,8 @@ import { ChartComponent } from './chart/chart.component';
     MatInput,
     CdkOverlayOrigin,
     MatButtonToggleGroup,
-    MatButtonToggle
+    MatButtonToggle,
+    MatCardActions
 
   ],
   providers: [

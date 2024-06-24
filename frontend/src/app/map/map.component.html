@@ -35,6 +35,18 @@
       </mat-form-field>
     </div>
 
+    <!-- map.component.html -->
+    <div class="form-field">
+      <mat-form-field appearance="fill">
+        <mat-label>Station By Type</mat-label>
+        <mat-select [(ngModel)]="selectedStationCode" (selectionChange)="onStationTypeSelect()">
+          <mat-option *ngFor="let station of stationTypes" [value]="station.code">
+            {{ station.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
 
     <div class="form-field">
       <button mat-raised-button [style.height.px]="55"
@@ -61,9 +73,11 @@
         <input matInput placeholder="Search stations" [(ngModel)]="searchKey" (keyup.enter)="search()">
         <mat-icon matPrefix>search</mat-icon>
       </mat-form-field>
-      <button mat-raised-button color="primary" style="height: 55px" (click)="search()">
+      <button mat-raised-button color="primary" style="height: 55px;" (click)="search()">
         Search
       </button>
+    <button (click)="clearAll()" mat-raised-button color="warn" style="height: 55px; margin-left: auto;">Clear All</button>
+
   </mat-card-header>
     <mat-divider></mat-divider>
     <mat-card-content>
