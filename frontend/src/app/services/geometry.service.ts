@@ -24,4 +24,18 @@ export class GeometryService {
     });
     return [point.longitude, point.latitude];
   }
+
+  convertProvAndRegRings(rings: number[][][]): { longitude: number, latitude: number }[] {
+    const formattedCoordinates: { longitude: number, latitude: number }[] = [];
+
+    rings.forEach(ring => {
+      ring.forEach(point => {
+        const longitude = point[0];
+        const latitude = point[1];
+        formattedCoordinates.push({ longitude, latitude });
+      });
+    });
+
+    return formattedCoordinates;
+  }
 }

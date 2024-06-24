@@ -18,15 +18,24 @@
           <mat-option [value]="'assets/provinces.geojson'">Provinces</mat-option>
           <mat-option [value]="'assets/regions.geojson'">Regions</mat-option>
           <mat-option [value]="null">None</mat-option>
-
         </mat-select>
       </mat-form-field>
     </div>
 
-    <!-- map.component.html -->
     <div class="form-field">
       <mat-form-field appearance="fill">
-        <mat-label>Select Province</mat-label>
+        <mat-label>Stations By Region</mat-label>
+        <mat-select [(ngModel)]="selectedRegionId" (selectionChange)="onRegionSelect()">
+          <mat-option *ngFor="let region of regions" [value]="region.id">
+            {{ region.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="form-field">
+      <mat-form-field appearance="fill">
+        <mat-label>Stations By Province</mat-label>
         <mat-select [(ngModel)]="selectedProvinceId" (selectionChange)="onProvinceSelect()">
           <mat-option *ngFor="let province of provinces" [value]="province.id">
             {{ province.name }}
@@ -35,7 +44,6 @@
       </mat-form-field>
     </div>
 
-    <!-- map.component.html -->
     <div class="form-field">
       <mat-form-field appearance="fill">
         <mat-label>Station By Type</mat-label>
@@ -46,7 +54,6 @@
         </mat-select>
       </mat-form-field>
     </div>
-
 
     <div class="form-field">
       <button mat-raised-button [style.height.px]="55"
@@ -63,31 +70,56 @@
         {{ nearbyStationsLoaded ? 'Hide Stations' : 'Load Nearby Stations' }}
       </button>
     </div>
-
   </div>
-<div *ngIf="isLoading">Loading...</div>
-<mat-card>
-  <mat-card-header>
-      <mat-form-field appearance="outline" class="search-input">
-        <mat-label>Search stations</mat-label>
-        <input matInput placeholder="Search stations" [(ngModel)]="searchKey" (keyup.enter)="search()">
-        <mat-icon matPrefix>search</mat-icon>
-      </mat-form-field>
-      <button mat-raised-button color="primary" style="height: 55px;" (click)="search()">
-        Search
-      </button>
-    <button (click)="clearAll()" mat-raised-button color="warn" style="height: 55px; margin-left: auto;">Clear All</button>
+  <div class="card-container">
+    <!-- First card -->
+    <mat-card class="card-left">
+      <mat-card-header>
+        <mat-form-field appearance="outline" class="search-input">
+          <mat-label>Search stations</mat-label>
+          <input matInput placeholder="Search stations" [(ngModel)]="searchKey" (keyup.enter)="search()">
+          <mat-icon matPrefix>search</mat-icon>
+        </mat-form-field>
+        <button mat-raised-button color="primary" style="height: 55px;" (click)="search()">
+          Search
+        </button>
+        <button (click)="clearAll()" mat-raised-button color="warn" style="height: 55px; margin-left: auto;">Clear All</button>
+      </mat-card-header>
+      <mat-divider></mat-divider>
+      <mat-card-content>
+        <div *ngIf="isLoading" class="loading-spinner">
+          <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+        </div>
+        <div id="mapViewDiv" style="height: 500px" [class.hidden]="isLoading"></div>
+        <div id="editorDiv" class="editor-container"></div>
+      </mat-card-content>
+    </mat-card>
 
-  </mat-card-header>
-    <mat-divider></mat-divider>
-    <mat-card-content>
-      <div *ngIf="isLoading" class="loading-spinner">
-        <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
-      </div>
-      <div id="mapViewDiv" style="height: 500px" [class.hidden]="isLoading"></div>
-      <div id="editorDiv" class="editor-container"></div>
-    </mat-card-content>
-</mat-card>
+    <mat-card class="card-right">
+     <mat-card-header> <mat-card-title>Charts</mat-card-title></mat-card-header>
+      <mat-divider></mat-divider>
+      <mat-card-content *ngIf="stationsLoaded">
+        <app-chart [chartData]="dataForChart"></app-chart>
+      </mat-card-content>
+      <mat-card-content *ngIf="nearbyStationsLoaded">
+        <app-chart [chartData]="dataForChart"></app-chart>
+      </mat-card-content>
+      <mat-card-content *ngIf="searchedLoaded">
+        <app-chart [chartData]="dataForChart"></app-chart>
+      </mat-card-content>
+      <mat-card-content *ngIf="byCodeLoaded">
+        <app-chart [chartData]="dataForChart"></app-chart>
+      </mat-card-content>
+      <mat-card-content *ngIf="provinceStationsLoaded">
+        <app-chart [chartData]="dataForChart"></app-chart>
+      </mat-card-content>
+      <mat-card-content *ngIf="regionStationsLoaded">
+        <app-chart [chartData]="dataForChart"></app-chart>
+      </mat-card-content>
+
+    </mat-card>
+  </div>
+
 
 
 </div>

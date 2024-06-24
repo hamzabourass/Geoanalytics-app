@@ -60,6 +60,7 @@ public class TransportStationService {
     }
 
 
+    @Transactional
     public List<TransportStation> findStationsWithinPolygon(PolygonDTO polygonDTO) {
         String polygonWKT = convertPolygonDTOToWKT(polygonDTO);
         return transportStationRepositoryCustom.findStationsWithinPolygon(polygonWKT);

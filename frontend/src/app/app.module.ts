@@ -24,8 +24,9 @@ import {FormsModule} from "@angular/forms";
 import {MatInput} from "@angular/material/input";
 import {CdkOverlayOrigin} from "@angular/cdk/overlay";
 import {MatButtonToggle, MatButtonToggleGroup} from "@angular/material/button-toggle";
-import { ChartComponent } from './chart/chart.component';
 import { PageNotFoundComponent } from './page-not-found/page-not-found.component';
+import { CanvasJSAngularChartsModule } from '@canvasjs/angular-charts';
+import {ChartComponent} from "./chart/chart.component";
 
 @NgModule({
   declarations: [
@@ -33,7 +34,6 @@ import { PageNotFoundComponent } from './page-not-found/page-not-found.component
     MapComponent,
     TemplateComponent,
     NearbyStationsDialogComponent,
-    ChartComponent,
     PageNotFoundComponent
   ],
   imports: [
@@ -65,7 +65,10 @@ import { PageNotFoundComponent } from './page-not-found/page-not-found.component
     CdkOverlayOrigin,
     MatButtonToggleGroup,
     MatButtonToggle,
-    MatCardActions
+    MatCardActions,
+    ChartComponent,
+    CanvasJSAngularChartsModule
+
 
   ],
   providers: [

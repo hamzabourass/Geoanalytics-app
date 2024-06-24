@@ -34,3 +34,19 @@
   border-radius: 5px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
+
+.card-container {
+  display: flex;
+  justify-content: space-between; /* Adjust as needed for spacing */
+  align-items: flex-start; /* Align items at the top */
+}
+
+.card-left {
+  width: calc(150% - 10px); /* Adjust width as needed */
+  margin-right: 10px; /* Adjust margin between cards */
+}
+
+.card-right {
+  width: 1000px;
+
+}

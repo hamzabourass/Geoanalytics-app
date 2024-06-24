@@ -16,6 +16,8 @@ import {Injectable} from "@angular/core";
 import EsriMap from '@arcgis/core/Map';
 import SimpleFillSymbol from "@arcgis/core/symbols/SimpleFillSymbol";
 import Geometry from "@arcgis/core/geometry/Geometry";
+import {stationTypeData} from "../data/stationTypeData";
+import {Observable, of, switchMap} from "rxjs";
 
 @Injectable({
   providedIn: 'root'
@@ -31,6 +33,8 @@ export class MapService {
   private stationGraphics: Graphic[] = [];
   private stationWithinGraphics: Graphic[] = [];
   private currentGeoJsonLayer: GeoJSONLayer | null = null;
+  stationTypes: { code: number | null, name: string }[] = stationTypeData;
+  public dataForChart: number[] = [];
 
   constructor(
     private stationService: TransportStationService,
@@ -107,9 +111,8 @@ export class MapService {
   }
 
 
-  private handleSketchUpdate(event: any): void {
+  handleSketchUpdate(event: any): void {
     const updatedGraphics = event.detail;
-
     if (updatedGraphics) {
       updatedGraphics.graphics.forEach((updatedGraphic: { geometry: any; }) => {
         const geometry = updatedGraphic.geometry;
@@ -126,6 +129,7 @@ export class MapService {
               (response: Station[]) => this.loadStationsWithinPolygon(response),
                 (error: any) => console.error('Error sending polygon to API:', error)
             );
+
           } else if (geometry.type === 'polyline') {
             console.log('Updated Polyline Paths:', geometry.toJSON().paths);
           }
@@ -168,7 +172,8 @@ export class MapService {
     }
   }
 
-  displayProvinceByObjectId(objectId: number | null): void {
+  // display region or province ny id
+  displayByObjectId(objectId: number | null): void {
     // Remove current highlight and clear map graphics
     if (!objectId){
       this.mapView.graphics.removeAll();
@@ -199,7 +204,7 @@ export class MapService {
               symbol: highlightSymbol
             });
 
-            const convertedRings = this.geometryService.convertPolygonRings(polygonGeometry.rings);
+            const convertedRings = this.geometryService.convertProvAndRegRings(polygonGeometry.rings);
             const payload = { coordinates: convertedRings };
             console.log("payload: ", payload);
 
@@ -207,7 +212,6 @@ export class MapService {
               (response: Station[]) => this.loadStationsWithinPolygon(response),
               (error: any) => console.error('Error sending polygon to API:', error)
             );
-
             this.mapView.graphics.add(highlightGraphic);
 
             this.mapView.goTo(selectedFeature.geometry.extent).catch(error => {
@@ -227,7 +231,8 @@ export class MapService {
     this.stationService.getStations().subscribe(
         (stations: Station[]) => {
         stations.forEach(station => {
-          const graphic = this.createStationGraphic(station);
+          let markerColor = [255, 0, 0]
+          const graphic = this.createStationGraphic(station,markerColor);
           this.stationGraphics.push(graphic);
           this.graphicsLayer.add(graphic);
           this.mapView.graphics.add(graphic);
@@ -241,22 +246,89 @@ export class MapService {
     this.stationService.searchStations(keySearch).subscribe(
       (stations: Station[]) => {
         stations.forEach(station => {
-          const graphic = this.createStationGraphic(station);
+          let markerColor = [255, 0, 0]
+          const graphic = this.createStationGraphic(station,markerColor);
           this.stationGraphics.push(graphic);
           this.graphicsLayer.add(graphic);
           this.mapView.graphics.add(graphic);
         });
 
       },
+
       (error: any)=> console.error('Error fetching stations:', error)
     );
+  }
+
+  fetchStationData(): Observable<Station[]> {
+    return this.stationService.getStations();
+  }
+
+  fetchNearStationData(longitude: number, latitude: number, distance: number): Observable<Station[]> {
+    return this.stationService.getNearbyStations(latitude,longitude,distance);
+  }
+
+  fetchSearchedStationsData(searchKey: string): Observable<Station[]> {
+    return this.stationService.searchStations(searchKey);
+  }
+
+  fetchStationsByCodeData(code: number): Observable<Station[]> {
+    return this.stationService.stationByCode(code);
+  }
+
+  fetchStationsWithinPolygon(objectId: number): Observable<Station[]> {
+    if (!this.currentGeoJsonLayer) {
+      console.error('currentGeoJsonLayer is null or undefined.');
+      return new Observable<Station[]>(); // Return empty observable if layer is not valid
+    }
+
+    const query = this.currentGeoJsonLayer.createQuery();
+    query.where = `OBJECTID = ${objectId}`;
+
+    return new Observable<Station[]>(observer => {
+      this.currentGeoJsonLayer?.queryFeatures(query)
+        .then((result: any) => {
+          if (result.features.length > 0) {
+            const selectedFeature = result.features[0];
+            const polygonGeometry = selectedFeature.geometry as Polygon;
+            const convertedRings = this.geometryService.convertProvAndRegRings(polygonGeometry.rings);
+            const payload = { coordinates: convertedRings };
+
+            // Fetch stations within polygon
+            this.stationService.getStationsWithinPolygon(payload).subscribe(
+              (stations: Station[]) => {
+                observer.next(stations); // Emit stations to observer
+                observer.complete(); // Complete the observable
+              },
+              (error: any) => {
+                observer.error(error); // Propagate error to observer
+              }
+            );
+          } else {
+            console.warn(`No features found with OBJECTID ${objectId}`);
+            observer.next([]); // Return empty array if no features found
+            observer.complete(); // Complete the observable
+          }
+        })
+        .catch((error) => {
+          console.error('Error querying features:', error);
+          observer.error(error); // Propagate error to observer
+        });
+    });
+  }
+  // counts number or station type within an array or station
+  countStationsByType(stations: Station[]): number[] {
+    return this.stationTypes.map(item => {
+
+      return stations.filter(station => station.code === item.code).length;
+    });
   }
 
   stationByCode(code:  number): void{
     this.stationService.stationByCode(code).subscribe(
       (stations: Station[]) => {
         stations.forEach(station => {
-          const graphic = this.createStationGraphic(station);
+          let markerColor = [0, 255, 0];
+          const graphic = this.createStationGraphic(station,markerColor);
           this.stationGraphics.push(graphic);
           this.graphicsLayer.add(graphic);
           this.mapView.graphics.add(graphic);
@@ -267,7 +339,8 @@ export class MapService {
     );
   }
 
-  private createStationGraphic(station: Station): Graphic {
+
+  private createStationGraphic(station: Station, markerColor: number[]): Graphic {
     const point = new Point({
       x: station.geometry.longitude,
       y: station.geometry.latitude,
@@ -275,7 +348,7 @@ export class MapService {
     });
 
     const markerSymbol = new SimpleMarkerSymbol({
-      color: [226, 119, 40],
+      color: markerColor,
       outline: { color: [0, 0, 0], width: 1 },
       size: 8
     });
@@ -293,17 +366,18 @@ export class MapService {
         title: `{name}`,
         content: [{
           type: 'text',
-          text: `ID: {id}<br>Code: {code}<br>fclass:{fclass}`
+          text: `ID: {id}<br>Code: {code}<br>fclass: {fclass}`
         }]
       }
     });
   }
 
-
+// this creates markers for stations within polygon
   loadStationsWithinPolygon(stations: Station[]): void {
     this.clearStations();
     stations.forEach(station => {
-      const graphic = this.createStationGraphic(station);
+      let markerColor = [255, 0, 0]
+      const graphic = this.createStationGraphic(station,markerColor);
       this.stationWithinGraphics.push(graphic);
       this.graphicsLayer.add(graphic);
     });
@@ -323,7 +397,8 @@ export class MapService {
     this.stationService.getNearbyStations(latitude, longitude, distanceMeters).subscribe(
       stations => {
         stations.forEach(station => {
-          const graphic = this.createStationGraphic(station);
+          let markerColor = [255, 0, 0]
+          const graphic = this.createStationGraphic(station,markerColor);
           this.stationWithinGraphics.push(graphic);
           this.graphicsLayer.add(graphic);
           this.mapView.graphics.add(graphic);
