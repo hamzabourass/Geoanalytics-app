@@ -24,13 +24,15 @@ import {FormsModule} from "@angular/forms";
 import {MatInput} from "@angular/material/input";
 import {CdkOverlayOrigin} from "@angular/cdk/overlay";
 import {MatButtonToggle, MatButtonToggleGroup} from "@angular/material/button-toggle";
+import { ChartComponent } from './chart/chart.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     MapComponent,
     TemplateComponent,
-    NearbyStationsDialogComponent
+    NearbyStationsDialogComponent,
+    ChartComponent
   ],
   imports: [
     BrowserModule,

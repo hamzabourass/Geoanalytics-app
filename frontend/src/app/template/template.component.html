@@ -5,45 +5,19 @@
     </mat-icon>
   </button>
   <span class="spacer"></span>
-  <button mat-button routerLink="/map">Map</button>
-  <button  mat-button [matMenuTriggerFor]="importMenu">
-    <mat-icon iconPositionEnd>
-      arrow_drop_down
-    </mat-icon>
-    Import
+  <button mat-button routerLink="/map">Map <mat-icon> map</mat-icon>
   </button>
-  <mat-menu #importMenu>
-    <button mat-menu-item routerLink="/">Load Students</button>
-    <button mat-menu-item routerLink="/">Load Payments</button>
 
-  </mat-menu>
   <button mat-button>Hamza Bouras</button>
 </mat-toolbar>
 
 <mat-drawer-container>
   <mat-drawer #drawer mode="side" position="start" opened="true">
 
-    <mat-nav-list>
-      <button mat-button routerLink="/">
-        <mat-icon> map</mat-icon>
-        Regions
-      </button>
-    </mat-nav-list>
+    <app-chart [chartData]="chartData"></app-chart>
 
-    <mat-nav-list>
-      <button mat-button routerLink="/">
-        <mat-icon> map </mat-icon>
-        Provinces
-      </button>
-    </mat-nav-list>
-
-    <mat-nav-list>
-      <button mat-button routerLink="/">
-        <mat-icon> money</mat-icon>
-        Payments
-      </button>
-    </mat-nav-list>
   </mat-drawer>
+
   <mat-drawer-content>
     <div style="min-height:600px;">
       <router-outlet></router-outlet>

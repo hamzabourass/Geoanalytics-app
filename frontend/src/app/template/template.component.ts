@@ -6,5 +6,6 @@ import { Component } from '@angular/core';
   styleUrl: './template.component.css'
 })
 export class TemplateComponent {
+  chartData: any;
 
 }

@@ -73,4 +73,9 @@ export class TransportStationService {
     );
   }
 
+  searchStations(searchKey: string): Observable<any[]> {
+    const url = `${this.apiUrl}/search?searchKey=${searchKey}`;
+    return this.http.get<Station[]>(url);
+  }
+
 }

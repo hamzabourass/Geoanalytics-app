@@ -23,28 +23,48 @@
       </mat-form-field>
     </div>
 
+    <!-- map.component.html -->
+    <div class="form-field">
+      <mat-form-field appearance="fill">
+        <mat-label>Select Province</mat-label>
+        <mat-select [(ngModel)]="selectedProvinceId" (selectionChange)="onProvinceSelect()">
+          <mat-option *ngFor="let province of provinces" [value]="province.id">
+            {{ province.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+
     <div class="form-field">
       <button mat-raised-button [style.height.px]="55"
-              [style.backgroundColor]="stationsLoaded ? '#FFA500' : '#FFF'"
+              [style.backgroundColor]="stationsLoaded ? '#FFA500' : '#ECECEC'"
               (click)="loadStations()">
         {{ stationsLoaded ? 'Hide Stations' : 'Load Stations' }}
       </button>
     </div>
 
     <div class="form-field">
-      <button mat-raised-button style="height: 55px; background-color: #2196F3; color: white;"
+      <button mat-raised-button [style.height.px]="55"
+              [style.backgroundColor]="nearbyStationsLoaded ? '#FFA500' : '#ECECEC'"
               (click)="nearbyStationsLoaded ? clearWithinStations() : openNearbyStationsDialog()">
         {{ nearbyStationsLoaded ? 'Hide Stations' : 'Load Nearby Stations' }}
       </button>
     </div>
 
-
-
-
   </div>
-
-  <div *ngIf="isLoading">Loading...</div>
+<div *ngIf="isLoading">Loading...</div>
 <mat-card>
+  <mat-card-header>
+      <mat-form-field appearance="outline" class="search-input">
+        <mat-label>Search stations</mat-label>
+        <input matInput placeholder="Search stations" [(ngModel)]="searchKey" (keyup.enter)="search()">
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+      <button mat-raised-button color="primary" style="height: 55px" (click)="search()">
+        Search
+      </button>
+  </mat-card-header>
     <mat-divider></mat-divider>
     <mat-card-content>
       <div *ngIf="isLoading" class="loading-spinner">

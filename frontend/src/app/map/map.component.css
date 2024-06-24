@@ -7,6 +7,14 @@
   margin-left: 10px;
 }
 
+.search-input {
+  flex: 0.4;
+  margin-right: 10px;
+}
+
+.no-results {
+  margin-top: 20px;
+}
 
 .loading-spinner {
   position: absolute;
