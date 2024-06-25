@@ -29,13 +29,10 @@ insights through maps and synchronized charts.
    - Angular Mterial:  Angular Material provides a set of reusable and customizable UI components following the Material Design guidelines.
    - Canvas: Utilizing Canvas in Angular allows you to create custom charts and graphs for visualizing transportation data fetched from the backend.
 - Approach:
- In my approach, I created an API to handle point coordinates and polygons, utilizing PostGIS extension functionalities to query stations in the database. Additionally, I developed other endpoints for search, listing, and various operations. Using ArcGIS with Angular, I built the frontend to interact with the API, enabling users to visualize and manipulate geographic data seamlessly.
+ In my approach, I Designed RESTful APIs in Spring Boot to expose endpoints for CRUD operations to handle point coordinates and polygons, utilizing PostGIS extension functionalities for spatial queries of stations in the database. Additionally, I developed other endpoints for search, listing, and various operations. Using ArcGIS with Angular, I built the frontend to interact with the API, enabling users to visualize and manipulate geographic data seamlessly.
 - Data Loading: I converted csv transportation data into geojson and  loaded it into PostgreSQL using python scripts.
      ![convert-csv-into-geojson](https://github.com/hamzabourass/Geomatic_Technical_Assessment/assets/105117343/7ba32e5f-884f-4f03-a13b-1f10f122ddd7)
      ![image](https://github.com/hamzabourass/Geomatic_Technical_Assessment/assets/105117343/55139ad6-4d11-4a2c-b9fb-baa732eb9ea0)
-
-- API Development: Designed RESTful APIs in Spring Boot to expose endpoints for CRUD operations on transportation data, integrating spatial queries for geospatial analysis.
-- Frontend Implementation: Using Angular, I've developed the user interfaces that interact with backend APIs, providing users with intuitive map navigation, query functionalities, and data visualization capabilities.
 - Dependencies :
   
 | Spring Boot Dependency  | Description |
