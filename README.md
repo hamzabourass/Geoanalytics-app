@@ -65,7 +65,7 @@ To set up this project and run it follow these steps:
    ```
     git clone https://github.com/hamzabourass/Geomatic_Technical_Assessment.git
    ```
-2. Navigate to the frontend app and run :
+2. Navigate to the frontend app folder and install dependencies ``npm install`` or other node js package manager then run the app:
    ```
    // If you have Angular CLI
    ng serve  
