@@ -145,6 +145,7 @@ Backend endpoints in swagger UI:
 ![image](https://github.com/hamzabourass/Geomatic_Technical_Assessment/assets/105117343/b5251711-f5ad-47ae-b0e1-365ee385ea1a)
 
 Frontend:
+> Note: Charts display number of station by type since I didnt find the capacity propertie within the transport station data
 - What is done:
   
     - [x] Display a map with the ability to choose different basemaps
